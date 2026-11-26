@@ -45,7 +45,12 @@
           <div class="icon-picker" id="icon-picker"></div>
           <input type="hidden" name="icon">
         </label>
-        <p class="help">⭐ = a routine entry (e.g. carer visits). It still shows on the day, but isn't counted or highlighted in the 4-week calendar.</p>
+        <p class="help" id="star-help">⭐ = a routine entry (e.g. carer visits). It still shows on the day, but isn't counted or highlighted in the 4-week calendar.</p>
+        <div class="notice hidden" id="star-note" role="status">
+          <b>⭐ Routine entry – not added to the 4-week calendar.</b><br>
+          It will show on the home screen and on the day itself, but won't be counted or highlighted in the 4-week calendar.
+          To include it there, choose a different picture.
+        </div>
         <div class="row">
           <label>Date <span class="req">*</span><input type="date" name="date" required></label>
           <label>Start time <input type="time" name="time"></label>

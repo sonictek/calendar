@@ -31,7 +31,7 @@
     t.textContent = msg;
     t.classList.remove('hidden');
     clearTimeout(toast._t);
-    toast._t = setTimeout(function () { t.classList.add('hidden'); }, 2500);
+    toast._t = setTimeout(function () { t.classList.add('hidden'); }, msg.length > 40 ? 5000 : 2500);
   }
 
   function el(tag, cls, text) {
@@ -102,9 +102,13 @@
       box.appendChild(b);
     });
   }
+  function isStar(ic) { return (ic || '').replace(/\uFE0F/g, '') === '⭐'; }
   function selectIcon(ic) {
     form.icon.value = ic;
     Array.prototype.forEach.call($('icon-picker').children, function (b) { b.classList.toggle('selected', b.textContent === ic); });
+    // Explain straight away that ⭐ entries are left out of the 4-week calendar.
+    $('star-note').classList.toggle('hidden', !isStar(ic));
+    $('star-help').classList.toggle('hidden', isStar(ic));
   }
 
   function updateRepeatUI() {
@@ -165,7 +169,8 @@
     req.then(function (d) {
       var i = state.events.findIndex(function (x) { return x.id === d.event.id; });
       if (i >= 0) state.events[i] = d.event; else state.events.push(d.event);
-      toast(state.editing ? 'Saved' : 'Added to the diary');
+      toast((state.editing ? 'Saved' : 'Added to the diary') +
+        (isStar(d.event.icon) ? ' – ⭐ routine, not added to the 4-week calendar' : ''));
       resetForm(body.date);
       renderAgenda();
     }).catch(function (err) { $('form-error').textContent = err.message; });
