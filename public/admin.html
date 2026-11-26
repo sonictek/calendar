@@ -176,6 +176,16 @@
           <label>Until <input type="time" name="end"></label>
         </div>
         <p class="help" id="msg-times-help">If “Until” is earlier than “From” (e.g. 9 pm until 7 am), it shows overnight, until the next morning.</p>
+        <label>Priority
+          <select name="priority">
+            <option value="1">1 – Highest (shown at the top)</option>
+            <option value="2">2 – High</option>
+            <option value="3" selected>3 – Normal</option>
+            <option value="4">4 – Low</option>
+            <option value="5">5 – Lowest (shown at the bottom)</option>
+          </select>
+        </label>
+        <p class="help">When several messages are showing, higher priority ones go at the top. If more than 3 are due at once, the highest priority 3 are shown.</p>
         <label class="check"><input type="checkbox" name="enabled" checked> Switched on</label>
         <p class="error" id="msg-error"></p>
         <div class="actions">
@@ -188,7 +198,7 @@
 
       <div class="card">
         <h2>Messages</h2>
-        <p class="help">The home screen shows every switched-on message that is due at that moment (up to 3 at once), timed ones first.</p>
+        <p class="help">Listed in the order they appear on the home screen: highest priority first. The tablet shows every switched-on message that is due at that moment, up to 3 at once.</p>
         <ul id="msg-list" class="simple-list msg-list"></ul>
       </div>
     </div>

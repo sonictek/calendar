@@ -130,6 +130,8 @@ textarea { resize: vertical; }
 .msg-list .msg-text { white-space: pre-line; overflow-wrap: anywhere; }
 .badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.05rem 0.5rem; border-radius: 99px; margin-left: 0.3rem; }
 .badge.now { background: #dff3e0; color: var(--ok); }
+.badge.prio { background: var(--accent-soft); color: var(--accent); }
+.badge.prio.p1, .badge.prio.p2 { background: #fde2e0; color: var(--danger); }
 .badge.off { background: #eee; color: var(--muted); }
 
 .linkbox { background: #f6f3ec; border-radius: 8px; padding: 0.6rem; margin: 0.6rem 0; overflow-wrap: anywhere; }

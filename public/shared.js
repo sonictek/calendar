@@ -245,7 +245,19 @@
     return div.textContent.replace(/\s+/g, ' ').trim();
   }
 
+  /* Message priority: 1 = highest (shown first) … 5 = lowest. Older messages have none = Normal. */
+  var PRIORITY_NAMES = { 1: 'Highest', 2: 'High', 3: 'Normal', 4: 'Low', 5: 'Lowest' };
+  function messagePriority(m) { return Number(m.priority) || 3; }
+  /* Display order: priority, then timed before all-day, then the order they were added. */
+  function sortMessages(list) {
+    return list.map(function (m, i) { return { m: m, i: i }; }).sort(function (a, b) {
+      return (messagePriority(a.m) - messagePriority(b.m)) ||
+        ((a.m.start ? 0 : 1) - (b.m.start ? 0 : 1)) || (a.i - b.i);
+    }).map(function (x) { return x.m; });
+  }
+
   return {
+    PRIORITY_NAMES: PRIORITY_NAMES, messagePriority: messagePriority, sortMessages: sortMessages,
     sanitizeHtml: sanitizeHtml, sanitizeToHtml: sanitizeToHtml, textToHtml: textToHtml, htmlToText: htmlToText,
     messageActive: messageActive, describeDays: describeDays, describeMessageSchedule: describeMessageSchedule,
     pad: pad, toDateStr: toDateStr, parseDate: parseDate, addDays: addDays,

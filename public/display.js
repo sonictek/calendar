@@ -196,9 +196,9 @@
   function renderMessages() {
     var now = new Date();
     var due = ((state.data && state.data.messages) || []).filter(function (m) { return S.messageActive(m, now); });
-    due.sort(function (a, b) { return (a.start ? 0 : 1) - (b.start ? 0 : 1); });
+    due = S.sortMessages(due); // highest priority first
     var box = $('messages');
-    var key = due.map(function (m) { return m.id + m.text + (m.html || ''); }).join('|');
+    var key = due.map(function (m) { return m.id + m.text + (m.html || '') + m.priority; }).join('|');
     if (box.getAttribute('data-key') === key) return;
     box.setAttribute('data-key', key);
     box.textContent = '';

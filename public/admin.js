@@ -476,6 +476,7 @@
     mform.start.value = m.start || '';
     mform.end.value = m.end || '';
     mform.enabled.checked = m.enabled !== false;
+    mform.priority.value = String(S.messagePriority(m));
     updateTimesUI();
     $('msg-form-title').textContent = 'Edit message';
     $('msg-save').textContent = 'Save changes';
@@ -496,7 +497,8 @@
       days: dayBoxes().filter(function (cb) { return cb.checked; }).map(function (cb) { return Number(cb.value); }),
       start: allDay ? '' : mform.start.value,
       end: allDay ? '' : mform.end.value,
-      enabled: mform.enabled.checked
+      enabled: mform.enabled.checked,
+      priority: Number(mform.priority.value)
     };
     body.text = S.htmlToText(body.html);
     if (!body.text) { $('msg-error').textContent = 'Please type the message.'; rteArea.focus(); return; }
@@ -520,7 +522,7 @@
     }).catch(function (err) { toast(err.message); });
   }
   function toggleMsg(m) {
-    var body = { text: m.text, html: m.html || '', days: m.days, start: m.start, end: m.end, enabled: m.enabled === false };
+    var body = { text: m.text, html: m.html || '', days: m.days, start: m.start, end: m.end, enabled: m.enabled === false, priority: S.messagePriority(m) };
     api('PUT', '/api/messages/' + m.id, body).then(function (d) {
       var i = state.messages.findIndex(function (x) { return x.id === d.message.id; });
       state.messages[i] = d.message;
@@ -540,7 +542,7 @@
       ul.appendChild(el('li', 'empty', 'No messages yet. Add one with the form.'));
       return;
     }
-    state.messages.forEach(function (m) {
+    S.sortMessages(state.messages).forEach(function (m) {
       var li = el('li');
       var span = el('span');
       if (m.html) {
@@ -551,6 +553,8 @@
         span.appendChild(el('div', 'msg-text', m.text));
       }
       var sub = el('small', null, S.describeMessageSchedule(m, use24));
+      var p = S.messagePriority(m);
+      sub.appendChild(el('span', 'badge prio p' + p, 'Priority ' + p + ' – ' + S.PRIORITY_NAMES[p]));
       if (m.enabled === false) sub.appendChild(el('span', 'badge off', 'Switched off'));
       else if (S.messageActive(m, now)) sub.appendChild(el('span', 'badge now', 'Showing now'));
       span.appendChild(sub);

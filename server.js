@@ -204,7 +204,8 @@ function cleanMessage(input, existing) {
     days,
     start: str(input.start, 5),
     end: str(input.end, 5),
-    enabled: input.enabled !== false
+    enabled: input.enabled !== false,
+    priority: Math.min(5, Math.max(1, Math.round(Number(input.priority)) || 3))
   };
   if (typeof input.html === 'string' && input.html.length > 10000) throw userError('That message is too long.');
   if (!msg.text) throw userError('Please type the message.');
@@ -332,7 +333,7 @@ async function handleApi(req, res, url) {
         idleMinutes: s.idleMinutes, calendarWeeks: s.calendarWeeks
       },
       messages: db.messages.filter(msg => msg.enabled !== false)
-        .map(({ id, text, html, days, start, end }) => ({ id, text, html, days, start, end })),
+        .map(({ id, text, html, days, start, end, priority }) => ({ id, text, html, days, start, end, priority: priority || 3 })),
       events: db.events.map(({ id, title, date, time, endTime, icon, notes, repeat, repeatUntil, skipDates, important }) =>
         ({ id, title, date, time, endTime, icon, notes, repeat, repeatUntil, skipDates, important }))
     });
