@@ -198,11 +198,19 @@
     var due = ((state.data && state.data.messages) || []).filter(function (m) { return S.messageActive(m, now); });
     due.sort(function (a, b) { return (a.start ? 0 : 1) - (b.start ? 0 : 1); });
     var box = $('messages');
-    var key = due.map(function (m) { return m.id + m.text; }).join('|');
+    var key = due.map(function (m) { return m.id + m.text + (m.html || ''); }).join('|');
     if (box.getAttribute('data-key') === key) return;
     box.setAttribute('data-key', key);
     box.textContent = '';
-    due.slice(0, MAX_MESSAGES).forEach(function (m) { box.appendChild(el('p', 'message', m.text)); });
+    due.slice(0, MAX_MESSAGES).forEach(function (m) {
+      if (m.html) {
+        var div = el('div', 'message rich');
+        div.appendChild(S.sanitizeHtml(m.html)); // formatting only; anything unsafe is removed
+        box.appendChild(div);
+      } else {
+        box.appendChild(el('p', 'message', m.text));
+      }
+    });
   }
 
   function renderHome() {
@@ -257,6 +265,7 @@
       var special = items.filter(function (e) { return e.repeat !== 'daily' && e.repeat !== 'weekdays'; });
       var cell = el('button', 'cell');
       cell.type = 'button';
+      if (d.getDay() === 0 || d.getDay() === 6) cell.classList.add('weekend');
       var top = el('div', 'c-top');
       top.appendChild(el('span', 'c-num', String(d.getDate())));
       if (d.getDate() === 1 || i === 0) top.appendChild(el('span', 'c-month', S.MONTHS[d.getMonth()].slice(0, 3)));
@@ -275,6 +284,8 @@
           cell.classList.add('has');
           cell.appendChild(el('div', 'c-first', special[0].title + (special.length > 1 ? ' (+' + (special.length - 1) + ' more)' : '')));
         }
+        // How many diary entries that day (everything, routines included).
+        if (items.length) cell.appendChild(el('span', 'c-count', String(items.length)));
         cell.setAttribute('aria-label', S.WEEKDAYS[d.getDay()] + ' ' + longDate(d) + ', ' + items.length + ' things');
         cell.addEventListener('click', openDay.bind(null, d));
       }

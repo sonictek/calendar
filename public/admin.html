@@ -109,9 +109,51 @@
     <div class="layout">
       <form id="msg-form" class="card entry-form">
         <h2 id="msg-form-title">Add a home-screen message</h2>
-        <label>Message <span class="req">*</span>
-          <textarea name="text" maxlength="300" rows="3" required placeholder="e.g. Julie the carer comes at 9 o'clock to help with breakfast"></textarea>
-        </label>
+        <div class="field-label">Message <span class="req">*</span></div>
+        <div class="rte" id="rte">
+          <div class="rte-bar" id="rte-bar" role="toolbar" aria-label="Formatting">
+            <button type="button" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+            <button type="button" data-cmd="strikeThrough" title="Strike through"><s>S</s></button>
+            <select id="rte-size" title="Text size">
+              <option value="">Size</option>
+              <option value="2">Small</option>
+              <option value="3">Normal</option>
+              <option value="5">Large</option>
+              <option value="6">Very large</option>
+              <option value="7">Huge</option>
+            </select>
+            <select id="rte-color" title="Text colour">
+              <option value="">Colour</option>
+              <option value="#1d1b18">Black</option>
+              <option value="#b3261e">Red</option>
+              <option value="#1f4e79">Blue</option>
+              <option value="#2e7d32">Green</option>
+              <option value="#6a1b9a">Purple</option>
+              <option value="#c25e00">Orange</option>
+              <option value="#5d574e">Grey</option>
+            </select>
+            <select id="rte-hilite" title="Highlight">
+              <option value="">Highlight</option>
+              <option value="#fff176">Yellow</option>
+              <option value="#c8e6c9">Green</option>
+              <option value="#bbdefb">Blue</option>
+              <option value="#f8bbd0">Pink</option>
+              <option value="transparent">None</option>
+            </select>
+            <button type="button" data-cmd="justifyLeft" title="Align left">⫷ Left</button>
+            <button type="button" data-cmd="justifyCenter" title="Centre">≡ Centre</button>
+            <button type="button" data-cmd="insertUnorderedList" title="Bulleted list">• List</button>
+            <button type="button" data-cmd="removeFormat" title="Clear formatting">✕ Clear</button>
+            <button type="button" data-cmd="undo" title="Undo (Ctrl+Z)">↶</button>
+            <button type="button" id="rte-source-btn" title="Edit the HTML code">&lt;&gt; HTML</button>
+          </div>
+          <div class="rte-area" id="rte-area" contenteditable="true" spellcheck="true"
+               data-placeholder="e.g. Julie the carer comes at 9 o'clock to help with breakfast"></div>
+          <textarea class="rte-source hidden" id="rte-source" spellcheck="false" rows="6"></textarea>
+        </div>
+        <p class="help">Links, pictures and videos aren't allowed, so the tablet can't be taken off the diary.</p>
         <fieldset class="days">
           <legend>Show on these days</legend>
           <div class="day-checks" id="day-checks"></div>

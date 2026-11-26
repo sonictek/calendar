@@ -16,7 +16,8 @@
   --important: #b3261e;
   --past: #8a8378;
   --rule: #e6dfd2;          /* lines on the diary page */
-  --margin: #e7a9a3;        /* soft red margin line, like a paper diary */
+  --margin: #e7a9a3;
+  --weekend: #c62828;       /* Saturdays and Sundays in the calendar */        /* soft red margin line, like a paper diary */
   font-size: min(1.95vw, 3.05vh);
 }
 @media (orientation: portrait) {
@@ -69,6 +70,12 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 .clock { font-size: 3.6rem; font-weight: 800; margin-top: 0.6rem; white-space: nowrap; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .daypart { font-size: 1.5rem; display: flex; align-items: center; gap: 0.6rem; margin-top: 0.2rem; }
 .daypart-icon { font-size: 1.8rem; }
+.message.rich { white-space: normal; overflow-wrap: anywhere; }
+.message.rich p, .message.rich h1, .message.rich h2, .message.rich h3 { margin: 0 0 0.3em; }
+.message.rich > :last-child { margin-bottom: 0; }
+.message.rich ul, .message.rich ol { margin: 0.2em 0; padding-left: 1.3em; }
+.message.rich h1 { font-size: 1.6em; } .message.rich h2 { font-size: 1.35em; } .message.rich h3 { font-size: 1.15em; }
+.message.rich hr { border: 0; border-top: 2px solid var(--line); margin: 0.4em 0; }
 .messages { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.9rem; min-height: 0; overflow: hidden; }
 .message { padding: 0.6rem 0.9rem; font-size: 1.1rem;
   background: #f3efe6; border-left: 6px solid var(--today-line); border-radius: 0.6rem;
@@ -140,7 +147,7 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 #view-calendar { display: flex; flex-direction: column; }
 .cal-head, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.45rem; }
 .cal-head div { text-align: center; font-weight: 700; font-size: 1rem; color: var(--muted); padding-bottom: 0.25rem; }
-.cal-head div.weekend { color: var(--accent); }
+.cal-head div.weekend { color: var(--weekend); }
 .cal-grid { flex: 1; min-height: 0; grid-auto-rows: 1fr; }
 .cell {
   font: inherit; color: inherit; text-align: left;
@@ -153,12 +160,22 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 .cell .c-month { font-size: 0.8rem; font-weight: 700; color: var(--muted); }
 .cell .c-icons { margin-left: auto; font-size: 1.15rem; line-height: 1; white-space: nowrap; }
 .cell .c-first {
+  margin-right: 1.8rem;
   font-size: 0.78rem; font-weight: 700; line-height: 1.2; margin-top: 0.15rem; padding-bottom: 0.05rem;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .cell.past { opacity: 0.35; background: transparent; cursor: default; }
 .cell.has { background: var(--has-entry); border-color: var(--has-entry-line); }
+.cell.weekend { border-color: var(--weekend); border-width: 3px; }
 .cell.today { background: var(--today); border: 4px solid var(--today-line); }
+.cell .c-count {
+  position: absolute; right: 0.35rem; bottom: 0.35rem;
+  min-width: 1.6rem; height: 1.6rem; padding: 0 0.35rem; border-radius: 99px;
+  background: var(--accent); color: #fff; font-size: 0.95rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.cell.weekend .c-count { background: var(--weekend); }
+.cell.today .c-count { background: var(--today-line); }
 .cell .c-today { margin-left: auto; font-size: 0.75rem; font-weight: 900; color: var(--today-line); letter-spacing: 0.05em; }
 .cell:not(.past):active { transform: scale(0.96); }
 .hint { text-align: center; color: var(--muted); font-size: 1rem; margin-top: 0.5rem; }

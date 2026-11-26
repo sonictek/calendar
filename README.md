@@ -15,7 +15,7 @@ Two parts:
   - the next thing is outlined and marked **Next**
   - a short line about **tomorrow**
 - **◀ Yesterday** and **Tomorrow ▶** buttons step through the days one at a time (up to 7 days back). Stepping back to today returns to the home screen.
-- **"See the next 4 weeks"** opens a calendar grid. Today is yellow. Days with something special on are blue, with a picture and the first item's name. Routines that happen every day or every weekday (carer visits, tablets) don't turn days blue, otherwise every day would look the same. They still appear on the day screens.
+- **"See the next 4 weeks"** opens a calendar grid. Today is yellow, and Saturdays and Sundays have a red box. Each day shows a number for how many diary entries it has. Days with something special on are blue, with a picture and the first item's name. Routines that happen every day or every weekday (carer visits, tablets) don't turn days blue, otherwise every day would look the same. They still appear on the day screens.
 - **Touching a day** shows that day's full list ("Wednesday 2nd December – In 6 days"), with Day before / Next day buttons.
 - **After 5 minutes without a touch** it goes back to the home screen showing today (the time can be changed in Settings).
 - It checks for changes every minute, so updates from the admin panel show up within about a minute. If the internet drops, it keeps showing the last saved diary.
@@ -28,7 +28,7 @@ Two parts:
   - **Skip this day:** remove one date of a repeating entry (e.g. no carer visit on Christmas Day) without changing the others. Skipped dates can be put back.
   - "Coming up" lists the next 2 weeks to 3 months as the tablet will show them, with an option to hide everyday routines.
   - Each entry records who added it and who last changed it.
-- **Home messages:** notes shown on the left of the home screen. Each one is shown on the chosen days of the week, either all day (permanent) or between set times, e.g. "Julie the carer comes at 9" on weekdays 7–9:30 am. A time range that crosses midnight (9 pm until 7 am) runs overnight into the next morning. Messages can be switched off without deleting them. Up to 3 show at once, timed ones first.
+- **Home messages:** notes shown on the left of the home screen. Each one is shown on the chosen days of the week, either all day (permanent) or between set times, e.g. "Julie the carer comes at 9" on weekdays 7–9:30 am. A time range that crosses midnight (9 pm until 7 am) runs overnight into the next morning. Messages can be formatted with bold, italic, underline, text size, colour, highlight, centring and bullet lists, or edited as HTML. Only formatting is kept: links, pictures, scripts and the like are removed, so the tablet can't be taken off the diary. Messages can be switched off without deleting them. Up to 3 show at once, timed ones first.
 - **Settings:** name to greet, inactivity timeout, number of weeks shown, 12- or 24-hour clock, and the tablet's display link.
 - **People:** add or remove the people who can log in, and change your own password.
 

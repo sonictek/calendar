@@ -199,12 +199,14 @@ function cleanMessage(input, existing) {
     : [];
   const msg = {
     id: existing ? existing.id : randomId(),
-    text: str(input.text, 300),
+    text: str(input.text, 1000),
+    html: str(input.html, 10000),
     days,
     start: str(input.start, 5),
     end: str(input.end, 5),
     enabled: input.enabled !== false
   };
+  if (typeof input.html === 'string' && input.html.length > 10000) throw userError('That message is too long.');
   if (!msg.text) throw userError('Please type the message.');
   if (!msg.days.length) throw userError('Choose at least one day.');
   if (msg.start || msg.end) {
@@ -241,7 +243,7 @@ const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'no-referrer',
-  'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+  'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'"
 };
 
 function send(res, status, body, headers = {}) {
@@ -330,7 +332,7 @@ async function handleApi(req, res, url) {
         idleMinutes: s.idleMinutes, calendarWeeks: s.calendarWeeks
       },
       messages: db.messages.filter(msg => msg.enabled !== false)
-        .map(({ id, text, days, start, end }) => ({ id, text, days, start, end })),
+        .map(({ id, text, html, days, start, end }) => ({ id, text, html, days, start, end })),
       events: db.events.map(({ id, title, date, time, endTime, icon, notes, repeat, repeatUntil, skipDates, important }) =>
         ({ id, title, date, time, endTime, icon, notes, repeat, repeatUntil, skipDates, important }))
     });

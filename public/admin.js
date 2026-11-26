@@ -338,6 +338,87 @@
   var mform = $('msg-form');
   var DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Monday first
 
+  /* ---- formatting editor ---- */
+  var rteArea = $('rte-area'), rteSource = $('rte-source'), rteBar = $('rte-bar');
+  var sourceMode = false, savedRange = null;
+
+  function saveSel() {
+    var sel = window.getSelection();
+    if (sel.rangeCount && rteArea.contains(sel.anchorNode)) savedRange = sel.getRangeAt(0).cloneRange();
+  }
+  function restoreSel() {
+    rteArea.focus();
+    if (savedRange) { var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+  }
+  function exec(cmd, val) {
+    if (sourceMode) return;
+    restoreSel();
+    try { document.execCommand('styleWithCSS', false, true); } catch (e) { /* ignore */ }
+    document.execCommand(cmd, false, val);
+    saveSel();
+    updateBarState();
+  }
+  function updateBarState() {
+    Array.prototype.forEach.call(rteBar.querySelectorAll('button[data-cmd]'), function (b) {
+      var cmd = b.getAttribute('data-cmd');
+      if (!/^(bold|italic|underline|strikeThrough|insertUnorderedList|justifyCenter)$/.test(cmd)) return;
+      var on = false;
+      try { on = document.queryCommandState(cmd); } catch (e) { /* ignore */ }
+      b.classList.toggle('on', !!on && rteArea.contains(window.getSelection().anchorNode));
+    });
+  }
+  document.addEventListener('selectionchange', function () { saveSel(); updateBarState(); });
+
+  Array.prototype.forEach.call(rteBar.querySelectorAll('button[data-cmd]'), function (b) {
+    b.addEventListener('mousedown', function (e) { e.preventDefault(); }); // keep the text selected
+    b.addEventListener('click', function () { exec(b.getAttribute('data-cmd')); });
+  });
+  [['rte-size', 'fontSize'], ['rte-color', 'foreColor'], ['rte-hilite', 'hiliteColor']].forEach(function (pair) {
+    var sel = $(pair[0]);
+    sel.addEventListener('change', function () {
+      if (sel.value) exec(pair[1], sel.value);
+      sel.value = '';
+    });
+  });
+
+  // Pasting from Word, web pages etc.: keep only safe formatting.
+  rteArea.addEventListener('paste', function (e) {
+    var cd = e.clipboardData;
+    if (!cd) return;
+    e.preventDefault();
+    var html = cd.getData('text/html');
+    var ins = html ? S.sanitizeToHtml(html) : S.textToHtml(cd.getData('text/plain'));
+    document.execCommand('insertHTML', false, ins);
+  });
+  // Dropped content gets the same treatment.
+  rteArea.addEventListener('drop', function (e) { e.preventDefault(); });
+
+  $('rte-source-btn').addEventListener('click', function () {
+    if (!sourceMode) {
+      rteSource.value = S.sanitizeToHtml(rteArea.innerHTML);
+      sourceMode = true;
+    } else {
+      rteArea.innerHTML = S.sanitizeToHtml(rteSource.value);
+      sourceMode = false;
+    }
+    rteArea.classList.toggle('hidden', sourceMode);
+    rteSource.classList.toggle('hidden', !sourceMode);
+    rteBar.classList.toggle('source-mode', sourceMode);
+    $('rte-source-btn').classList.toggle('on', sourceMode);
+    (sourceMode ? rteSource : rteArea).focus();
+  });
+
+  function setEditorHtml(html) {
+    if (sourceMode) $('rte-source-btn').click();
+    rteArea.innerHTML = S.sanitizeToHtml(html || '');
+    savedRange = null;
+  }
+  function getEditorHtml() {
+    var html = S.sanitizeToHtml(sourceMode ? rteSource.value : rteArea.innerHTML).trim();
+    // An editor left with only empty tags counts as empty.
+    return S.htmlToText(html) ? html : '';
+  }
+
   function buildDayChecks() {
     var box = $('day-checks');
     DAY_ORDER.forEach(function (d) {
@@ -369,6 +450,7 @@
 
   function resetMsgForm() {
     mform.reset();
+    setEditorHtml('');
     state.editingMsg = null;
     setDays([0, 1, 2, 3, 4, 5, 6]);
     updateTimesUI();
@@ -383,7 +465,7 @@
 
   function editMsg(m) {
     state.editingMsg = m;
-    mform.text.value = m.text;
+    setEditorHtml(m.html || S.textToHtml(m.text));
     setDays(m.days || []);
     mform.allDay.checked = !(m.start && m.end);
     mform.start.value = m.start || '';
@@ -404,12 +486,15 @@
     e.preventDefault();
     var allDay = mform.allDay.checked;
     var body = {
-      text: mform.text.value,
+      html: getEditorHtml(),
+      text: '',
       days: dayBoxes().filter(function (cb) { return cb.checked; }).map(function (cb) { return Number(cb.value); }),
       start: allDay ? '' : mform.start.value,
       end: allDay ? '' : mform.end.value,
       enabled: mform.enabled.checked
     };
+    body.text = S.htmlToText(body.html);
+    if (!body.text) { $('msg-error').textContent = 'Please type the message.'; rteArea.focus(); return; }
     var editing = state.editingMsg;
     (editing ? api('PUT', '/api/messages/' + editing.id, body) : api('POST', '/api/messages', body))
       .then(function (d) {
@@ -422,7 +507,7 @@
   });
   $('msg-cancel').addEventListener('click', resetMsgForm);
   function deleteMsg(m) {
-    if (!m || !confirm('Delete this message?\n\n"' + m.text + '"')) return;
+    if (!m || !confirm('Delete this message?\n\n"' + m.text.slice(0, 200) + '"')) return;
     api('DELETE', '/api/messages/' + m.id).then(function () {
       state.messages = state.messages.filter(function (x) { return x.id !== m.id; });
       if (state.editingMsg && state.editingMsg.id === m.id) resetMsgForm();
@@ -430,7 +515,7 @@
     }).catch(function (err) { toast(err.message); });
   }
   function toggleMsg(m) {
-    var body = { text: m.text, days: m.days, start: m.start, end: m.end, enabled: m.enabled === false };
+    var body = { text: m.text, html: m.html || '', days: m.days, start: m.start, end: m.end, enabled: m.enabled === false };
     api('PUT', '/api/messages/' + m.id, body).then(function (d) {
       var i = state.messages.findIndex(function (x) { return x.id === d.message.id; });
       state.messages[i] = d.message;
@@ -453,7 +538,13 @@
     state.messages.forEach(function (m) {
       var li = el('li');
       var span = el('span');
-      span.appendChild(el('div', 'msg-text', m.text));
+      if (m.html) {
+        var preview = el('div', 'msg-text rich');
+        preview.appendChild(S.sanitizeHtml(m.html));
+        span.appendChild(preview);
+      } else {
+        span.appendChild(el('div', 'msg-text', m.text));
+      }
       var sub = el('small', null, S.describeMessageSchedule(m, use24));
       if (m.enabled === false) sub.appendChild(el('span', 'badge off', 'Switched off'));
       else if (S.messageActive(m, now)) sub.appendChild(el('span', 'badge now', 'Showing now'));

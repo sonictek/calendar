@@ -139,7 +139,114 @@
     return text;
   }
 
+  /* ---------- formatted (HTML) messages ----------
+     Messages may contain simple formatting. Before anything is shown, the HTML
+     is rebuilt from an allow-list: only formatting tags and a few safe style
+     properties survive. Scripts, links, images, forms, event handlers etc. are
+     removed. Browser only (uses DOMParser). */
+  var ALLOWED_TAGS = {
+    B: 1, STRONG: 1, I: 1, EM: 1, U: 1, S: 1, STRIKE: 1, BR: 1, P: 1, DIV: 1, SPAN: 1, FONT: 1,
+    UL: 1, OL: 1, LI: 1, H1: 1, H2: 1, H3: 1, SMALL: 1, BIG: 1, MARK: 1, HR: 1, SUB: 1, SUP: 1, BLOCKQUOTE: 1
+  };
+  // Dropped completely, including their contents.
+  var DROP_TAGS = /^(SCRIPT|STYLE|IFRAME|FRAME|OBJECT|EMBED|TEMPLATE|NOSCRIPT|TITLE|HEAD|META|LINK|SVG|MATH|FORM|INPUT|BUTTON|SELECT|TEXTAREA|IMG|VIDEO|AUDIO|CANVAS|PICTURE|SOURCE|XML)$/;
+  var STYLE_PROPS = ['color', 'background-color', 'font-size', 'font-weight', 'font-style',
+    'text-decoration', 'text-decoration-line', 'text-align'];
+  var FONT_SIZES = { 1: '0.7em', 2: '0.85em', 3: '1em', 4: '1.2em', 5: '1.5em', 6: '2em', 7: '2.6em' };
+
+  /* Text sizes are made relative to the message's own size, so "Large" is
+     always bigger than normal text whatever size the screen uses. */
+  var KEYWORD_SIZES = {
+    'xx-small': 0.6, 'x-small': 0.7, small: 0.85, medium: 1, large: 1.2, 'x-large': 1.5,
+    'xx-large': 2, 'xxx-large': 2.6, smaller: 0.85, larger: 1.2
+  };
+  function relativeFontSize(v) {
+    var em;
+    if (KEYWORD_SIZES[v]) em = KEYWORD_SIZES[v];
+    else {
+      var m = /^(\d{1,3}(?:\.\d+)?)(px|em|rem|%|pt)$/.exec(v);
+      if (!m) return null;
+      var n = parseFloat(m[1]);
+      em = m[2] === 'px' ? n / 16 : m[2] === 'pt' ? n / 12 : m[2] === '%' ? n / 100 : n;
+    }
+    em = Math.min(3, Math.max(0.5, em)); // keep it readable and on the screen
+    return (Math.round(em * 100) / 100) + 'em';
+  }
+
+  function safeStyleValue(prop, v) {
+    v = String(v || '').trim().toLowerCase();
+    if (!v || v.length > 60 || /url\(|expression|javascript:|[<>{}\;@]/.test(v)) return null;
+    if (prop === 'text-align') return /^(left|right|center|justify|start|end)$/.test(v) ? v : null;
+    if (prop === 'font-size') return relativeFontSize(v);
+    if (prop === 'color' || prop === 'background-color') {
+      return /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\)|[a-z]{3,20})$/.test(v) ? v : null;
+    }
+    return /^[a-z0-9 -]+$/.test(v) ? v : null;
+  }
+
+  function parseStyle(str) {
+    var out = [];
+    String(str || '').split(';').forEach(function (part) {
+      var i = part.indexOf(':');
+      if (i < 1) return;
+      var prop = part.slice(0, i).trim().toLowerCase();
+      if (STYLE_PROPS.indexOf(prop) === -1) return;
+      var val = safeStyleValue(prop, part.slice(i + 1).replace(/!important/i, ''));
+      if (val) out.push([prop, val]);
+    });
+    return out;
+  }
+
+  /* Returns a DocumentFragment containing only safe, formatting-only nodes. */
+  function sanitizeHtml(html) {
+    var doc = new DOMParser().parseFromString('<!doctype html><body>' + String(html || ''), 'text/html');
+    var frag = document.createDocumentFragment();
+    function walk(src, dest, depth) {
+      if (depth > 30) return;
+      for (var n = src.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 3) { dest.appendChild(document.createTextNode(n.nodeValue)); continue; }
+        if (n.nodeType !== 1) continue;            // comments etc.
+        var tag = n.tagName.toUpperCase();
+        if (DROP_TAGS.test(tag)) continue;
+        if (!ALLOWED_TAGS[tag]) { walk(n, dest, depth + 1); continue; } // unknown tag: keep its text
+        var el = document.createElement(tag === 'FONT' ? 'span' : tag.toLowerCase());
+        parseStyle(n.getAttribute('style')).forEach(function (p) { el.style.setProperty(p[0], p[1]); });
+        if (tag === 'FONT') {
+          var c = safeStyleValue('color', n.getAttribute('color'));
+          if (c) el.style.color = c;
+          var sz = FONT_SIZES[String(n.getAttribute('size') || '').trim()];
+          if (sz) el.style.fontSize = sz;
+        }
+        var align = safeStyleValue('text-align', n.getAttribute('align'));
+        if (align) el.style.textAlign = align;
+        walk(n, el, depth + 1);
+        dest.appendChild(el);
+      }
+    }
+    walk(doc.body, frag, 0);
+    return frag;
+  }
+
+  function sanitizeToHtml(html) {
+    var div = document.createElement('div');
+    div.appendChild(sanitizeHtml(html));
+    return div.innerHTML;
+  }
+
+  function textToHtml(text) {
+    return String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/\r?\n/g, '<br>');
+  }
+
+  /* Plain-text version of (already sanitized) HTML, for summaries. */
+  function htmlToText(html) {
+    var div = document.createElement('div');
+    div.appendChild(sanitizeHtml(String(html || '').replace(/<(br|\/p|\/div|\/li|\/h[1-3])\b[^>]*>/gi, ' $&')));
+    return div.textContent.replace(/\s+/g, ' ').trim();
+  }
+
   return {
+    sanitizeHtml: sanitizeHtml, sanitizeToHtml: sanitizeToHtml, textToHtml: textToHtml, htmlToText: htmlToText,
     messageActive: messageActive, describeDays: describeDays, describeMessageSchedule: describeMessageSchedule,
     pad: pad, toDateStr: toDateStr, parseDate: parseDate, addDays: addDays,
     daysBetween: daysBetween, occursOn: occursOn, entriesForDate: entriesForDate,
