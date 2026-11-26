@@ -1,23 +1,29 @@
 /* Kiosk display – large, calm, high-contrast. Everything is sized in rem,
    and the root size scales with the screen so it fits any 10" tablet. */
 :root {
-  --bg: #fbf7ef;
+  --bg: #eef2f7;            /* light grey-blue page */
   --panel: #ffffff;
-  --ink: #1d1b18;
-  --muted: #5d574e;
-  --line: #d9d1c3;
-  --accent: #1f4e79;        /* deep blue: buttons */
+  --ink: #0f1b33;           /* near-black navy text */
+  --muted: #4a5568;
+  --line: #cdd5e1;
+  --accent: #10306b;        /* navy: banner, buttons */
   --accent-ink: #ffffff;
+  --soft-btn: #e6ecf5;      /* light fill for secondary buttons */
   --has-entry: #dceaf7;     /* calm blue: days with something on */
-  --has-entry-line: #1f4e79;
-  --today: #ffe08a;         /* warm yellow: today */
-  --today-line: #a86b00;
-  --now: #fff1c2;
+  --has-entry-line: #10306b;
+  --today: #fcd34d;         /* yellow: today, the clock */
+  --today-line: #b7791f;
+  --now: #fff3c4;
   --important: #b3261e;
-  --past: #8a8378;
-  --rule: #e6dfd2;          /* lines on the diary page */
-  --margin: #e7a9a3;
-  --weekend: #c62828;       /* Saturdays and Sundays in the calendar */        /* soft red margin line, like a paper diary */
+  --past: #8a94a6;
+  --done: #2f9e44;          /* green "Earlier" label */
+  --next: #1c6fe0;          /* bright blue "Next" label */
+  --upcoming: #8a94a6;      /* grey "Upcoming" label */
+  --msg-bg: #fdf3c8;        /* pale yellow home messages */
+  --msg-line: #f0c02f;
+  --rule: #dde3ec;          /* lines on the diary page */
+  --margin: #b9c3d3;        /* margin line between times and entries */
+  --weekend: #c62828;       /* Saturdays and Sundays in the calendar */
   font-size: min(1.95vw, 3.05vh);
 }
 @media (orientation: portrait) {
@@ -46,7 +52,7 @@ p, h1, h2, ul { margin: 0; padding: 0; }
   font: inherit; font-size: 1.15rem; font-weight: 700;
   min-height: 3.2rem; padding: 0.6rem 1.4rem;
   border: 3px solid var(--accent); border-radius: 1rem;
-  background: var(--panel); color: var(--accent);
+  background: var(--soft-btn); color: var(--accent);
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   cursor: pointer;
 }
@@ -59,16 +65,21 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 #view-home { display: flex; gap: 1.4rem; }
 .home-left {
   flex: 0 0 38%;
-  display: flex; flex-direction: column; justify-content: center;
-  padding: 1rem 1.4rem; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center; text-align: center;
+  padding: 1rem 1.2rem; overflow: hidden;
   background: var(--panel); border-radius: 1.4rem; border: 2px solid var(--line);
 }
-.greeting { font-size: 1.2rem; color: var(--muted); margin-bottom: 0.3rem; }
-.today-is { font-size: 1.1rem; color: var(--muted); }
+.greeting { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+.today-is { font-size: 1.1rem; font-weight: 600; }
 .weekday { font-size: 2.7rem; font-weight: 800; line-height: 1.05; overflow-wrap: anywhere; }
 .fulldate { font-size: 1.3rem; font-weight: 600; margin-top: 0.2rem; }
-.clock { font-size: 3rem; font-weight: 800; margin-top: 0.4rem; line-height: 1.1; white-space: nowrap; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.daypart { font-size: 1.3rem; display: flex; align-items: center; gap: 0.6rem; margin-top: 0.2rem; }
+.clock {
+  font-size: 2.8rem; font-weight: 800; line-height: 1.1; white-space: nowrap; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+  margin: 0.5rem auto 0; padding: 0.25rem 1rem; border-radius: 1rem;
+  background: var(--today); display: flex; align-items: center; justify-content: center; gap: 0.6rem; width: 100%;
+}
+.clock-icon { width: 0.85em; height: 0.85em; flex-shrink: 0; }
+.daypart { font-size: 1.3rem; display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-top: 0.4rem; }
 .daypart-icon { font-size: 1.5rem; }
 .message.rich { white-space: normal; overflow-wrap: anywhere; }
 .message.rich p, .message.rich h1, .message.rich h2, .message.rich h3 { margin: 0 0 0.3em; }
@@ -77,14 +88,20 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 .message.rich h1 { font-size: 1.6em; } .message.rich h2 { font-size: 1.35em; } .message.rich h3 { font-size: 1.15em; }
 .message.rich hr { border: 0; border-top: 2px solid var(--line); margin: 0.4em 0; }
 .messages { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.9rem; min-height: 0; overflow: hidden; }
-.message { padding: 0.6rem 0.9rem; font-size: 1.1rem;
-  background: #f3efe6; border-left: 6px solid var(--today-line); border-radius: 0.6rem;
+.message { padding: 0.6rem 0.9rem; font-size: 1.1rem; text-align: left;
+  background: var(--msg-bg); border: 1px solid #f3dc8a; border-left: 6px solid var(--msg-line); border-radius: 0.6rem;
   white-space: pre-line;
 }
 
-.home-right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.7rem; }
-.panel-title { font-size: 1.8rem; font-weight: 800; line-height: 1.1; }
-.tomorrow { font-size: 1.05rem; color: var(--muted); }
+.home-right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.panel-title {
+  font-size: 1.6rem; font-weight: 800; line-height: 1.1; text-align: center;
+  background: var(--accent); color: var(--accent-ink); border-radius: 1rem; padding: 0.3rem 1rem;
+}
+.tomorrow {
+  font-size: 1.05rem; font-weight: 600; text-align: center; padding-top: 0.5rem; border-top: 2px solid var(--line);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .tomorrow b { color: var(--ink); }
 .home-nav { display: flex; gap: 0.6rem; }
 #btn-calendar { flex: 1; min-width: 0; font-size: 1.35rem; min-height: 4rem; padding-left: 0.8rem; padding-right: 0.8rem; }
@@ -128,9 +145,12 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 .entry.important .e-title::after { content: " ❗"; }
 .entry.is-now { background: var(--now); }
 .entry.is-now .e-tag { background: var(--today-line); }
-.entry.is-past { opacity: 0.5; padding-top: 0.35rem; padding-bottom: 0.35rem; }
+.entry.is-next .e-tag { background: var(--next); }
+.entry.is-upcoming .e-tag { background: var(--upcoming); }
+.entry.is-past { padding-top: 0.35rem; padding-bottom: 0.35rem; }
+.entry.is-past .e-title, .entry.is-past .e-time { color: var(--muted); }
 .entries .entry.is-past .e-notes, .entries .entry.is-past .e-time small { display: none; }
-.entry.is-past .e-tag { background: none; color: var(--past); padding: 0; font-weight: 700; }
+.entry.is-past .e-tag { background: var(--done); }
 .entries .empty {
   font-size: 1.35rem; color: var(--muted); padding: 1.6rem 1rem; text-align: center;
 }

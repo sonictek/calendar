@@ -152,6 +152,9 @@
           li.classList.add('is-next');
           li.appendChild(el('span', 'e-tag', 'Next'));
           if (!firstActive) firstActive = li;
+        } else {
+          li.classList.add('is-upcoming');
+          li.appendChild(el('span', 'e-tag', 'Upcoming'));
         }
       }
       listEl.appendChild(li);
