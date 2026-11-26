@@ -26,6 +26,7 @@
     <h1>📔 Diary admin</h1>
     <nav class="tabs" id="tabs">
       <button data-tab="entries" class="active" type="button">Diary</button>
+      <button data-tab="messages" type="button">Home messages</button>
       <button data-tab="settings" type="button">Settings</button>
       <button data-tab="people" type="button">People</button>
     </nav>
@@ -103,6 +104,48 @@
     </div>
   </section>
 
+  <!-- Home messages -->
+  <section id="tab-messages" class="tab hidden">
+    <div class="layout">
+      <form id="msg-form" class="card entry-form">
+        <h2 id="msg-form-title">Add a home-screen message</h2>
+        <label>Message <span class="req">*</span>
+          <textarea name="text" maxlength="300" rows="3" required placeholder="e.g. Julie the carer comes at 9 o'clock to help with breakfast"></textarea>
+        </label>
+        <fieldset class="days">
+          <legend>Show on these days</legend>
+          <div class="day-checks" id="day-checks"></div>
+          <div class="quick-days">
+            Quick pick:
+            <button class="btn small" type="button" data-days="0,1,2,3,4,5,6">Every day</button>
+            <button class="btn small" type="button" data-days="1,2,3,4,5">Weekdays</button>
+            <button class="btn small" type="button" data-days="0,6">Weekends</button>
+          </div>
+        </fieldset>
+        <label class="check"><input type="checkbox" name="allDay" checked> All day (shows the whole day)</label>
+        <div class="row" id="msg-times">
+          <label>From <input type="time" name="start"></label>
+          <label>Until <input type="time" name="end"></label>
+        </div>
+        <p class="help" id="msg-times-help">If “Until” is earlier than “From” (e.g. 9 pm until 7 am), it shows overnight, until the next morning.</p>
+        <label class="check"><input type="checkbox" name="enabled" checked> Switched on</label>
+        <p class="error" id="msg-error"></p>
+        <div class="actions">
+          <button class="btn primary" type="submit" id="msg-save">Add message</button>
+          <button class="btn" type="button" id="msg-cancel">Clear</button>
+          <button class="btn danger hidden" type="button" id="msg-delete">Delete</button>
+        </div>
+        <p class="meta" id="msg-meta"></p>
+      </form>
+
+      <div class="card">
+        <h2>Messages</h2>
+        <p class="help">The home screen shows every switched-on message that is due at that moment (up to 3 at once), timed ones first.</p>
+        <ul id="msg-list" class="simple-list msg-list"></ul>
+      </div>
+    </div>
+  </section>
+
   <!-- Settings -->
   <section id="tab-settings" class="tab hidden">
     <form id="settings-form" class="card narrow">
@@ -110,9 +153,7 @@
       <label>Name to greet (e.g. “Margaret” → “Good morning, Margaret”)
         <input name="personName" maxlength="60">
       </label>
-      <label>Message on the home screen (optional)
-        <textarea name="homeMessage" maxlength="300" rows="3" placeholder="e.g. You live at 12 Rose Lane. Sarah phones every evening."></textarea>
-      </label>
+      <p class="help">Messages on the home screen are now set in the <b>Home messages</b> tab.</p>
       <div class="row">
         <label>Go back to today after (minutes of no touching)
           <input name="idleMinutes" type="number" min="1" max="60">

@@ -47,18 +47,30 @@ function defaultSettings() {
 
 function loadDb() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
-  let data = { users: [], events: [], settings: defaultSettings(), sessions: {} };
+  let data = { users: [], events: [], messages: [], settings: defaultSettings(), sessions: {} };
   if (fs.existsSync(DB_FILE)) {
     const loaded = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     data = Object.assign(data, loaded);
     data.settings = Object.assign(defaultSettings(), loaded.settings || {});
     data.sessions = loaded.sessions || {};
+    if (!Array.isArray(data.messages)) data.messages = [];
   }
   return data;
 }
 
 let db = loadDb();
 let dataVersion = crypto.randomBytes(6).toString('hex');
+
+// Older versions had a single home-screen message in settings: move it into the
+// scheduled messages list as an always-on message.
+if (db.settings.homeMessage) {
+  db.messages.push({
+    id: randomId(), text: db.settings.homeMessage, days: [0, 1, 2, 3, 4, 5, 6],
+    start: '', end: '', enabled: true, createdBy: 'earlier setting', createdAt: new Date().toISOString()
+  });
+  db.settings.homeMessage = '';
+  saveDb();
+}
 
 function saveDb() {
   const tmp = DB_FILE + '.tmp';
@@ -181,10 +193,30 @@ function cleanEvent(input, existing) {
   return ev;
 }
 
+function cleanMessage(input, existing) {
+  const days = Array.isArray(input.days)
+    ? [...new Set(input.days.map(Number).filter(d => Number.isInteger(d) && d >= 0 && d <= 6))].sort()
+    : [];
+  const msg = {
+    id: existing ? existing.id : randomId(),
+    text: str(input.text, 300),
+    days,
+    start: str(input.start, 5),
+    end: str(input.end, 5),
+    enabled: input.enabled !== false
+  };
+  if (!msg.text) throw userError('Please type the message.');
+  if (!msg.days.length) throw userError('Choose at least one day.');
+  if (msg.start || msg.end) {
+    if (!TIME_RE.test(msg.start) || !TIME_RE.test(msg.end)) throw userError('Set both a "from" and an "until" time, or tick "All day".');
+    if (msg.start === msg.end) throw userError('"From" and "until" can\'t be the same time.');
+  }
+  return msg;
+}
+
 function cleanSettings(input) {
   const s = db.settings;
   if ('personName' in input) s.personName = str(input.personName, 60);
-  if ('homeMessage' in input) s.homeMessage = str(input.homeMessage, 300);
   if ('clock24' in input) s.clock24 = !!input.clock24;
   if ('idleMinutes' in input) {
     const n = Math.round(Number(input.idleMinutes));
@@ -294,9 +326,11 @@ async function handleApi(req, res, url) {
       appVersion: APP_VERSION,
       dataVersion,
       settings: {
-        personName: s.personName, homeMessage: s.homeMessage, clock24: s.clock24,
+        personName: s.personName, clock24: s.clock24,
         idleMinutes: s.idleMinutes, calendarWeeks: s.calendarWeeks
       },
+      messages: db.messages.filter(msg => msg.enabled !== false)
+        .map(({ id, text, days, start, end }) => ({ id, text, days, start, end })),
       events: db.events.map(({ id, title, date, time, endTime, icon, notes, repeat, repeatUntil, skipDates, important }) =>
         ({ id, title, date, time, endTime, icon, notes, repeat, repeatUntil, skipDates, important }))
     });
@@ -376,6 +410,35 @@ async function handleApi(req, res, url) {
     }
     if (!evMatch[2] && m === 'DELETE') {
       db.events.splice(idx, 1);
+      saveDb();
+      return json(res, 200, { ok: true });
+    }
+  }
+
+  if (p === '/api/messages' && m === 'GET') return json(res, 200, { messages: db.messages });
+  if (p === '/api/messages' && m === 'POST') {
+    const msg = cleanMessage(await readBody(req));
+    msg.createdBy = msg.updatedBy = me.username;
+    msg.createdAt = msg.updatedAt = new Date().toISOString();
+    db.messages.push(msg);
+    saveDb();
+    return json(res, 201, { message: msg });
+  }
+  const msgMatch = p.match(/^\/api\/messages\/([\w-]+)$/);
+  if (msgMatch) {
+    const idx = db.messages.findIndex(x => x.id === msgMatch[1]);
+    if (idx === -1) return json(res, 404, { error: 'That message no longer exists.' });
+    const existing = db.messages[idx];
+    if (m === 'PUT') {
+      const msg = cleanMessage(await readBody(req), existing);
+      msg.createdBy = existing.createdBy; msg.createdAt = existing.createdAt;
+      msg.updatedBy = me.username; msg.updatedAt = new Date().toISOString();
+      db.messages[idx] = msg;
+      saveDb();
+      return json(res, 200, { message: msg });
+    }
+    if (m === 'DELETE') {
+      db.messages.splice(idx, 1);
       saveDb();
       return json(res, 200, { ok: true });
     }

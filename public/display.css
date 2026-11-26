@@ -57,7 +57,7 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 .home-left {
   flex: 0 0 38%;
   display: flex; flex-direction: column; justify-content: center;
-  padding: 1rem 1.4rem;
+  padding: 1rem 1.4rem; overflow: hidden;
   background: var(--panel); border-radius: 1.4rem; border: 2px solid var(--line);
 }
 .greeting { font-size: 1.25rem; color: var(--muted); margin-bottom: 0.4rem; }
@@ -67,8 +67,8 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 .clock { font-size: 3.6rem; font-weight: 800; margin-top: 0.6rem; white-space: nowrap; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .daypart { font-size: 1.5rem; display: flex; align-items: center; gap: 0.6rem; margin-top: 0.2rem; }
 .daypart-icon { font-size: 1.8rem; }
-.message {
-  margin-top: 0.9rem; padding: 0.6rem 0.9rem; font-size: 1.1rem;
+.messages { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.9rem; min-height: 0; overflow: hidden; }
+.message { padding: 0.6rem 0.9rem; font-size: 1.1rem;
   background: #f3efe6; border-left: 6px solid var(--today-line); border-radius: 0.6rem;
   white-space: pre-line;
 }
@@ -77,7 +77,11 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 .panel-title { font-size: 1.8rem; font-weight: 800; line-height: 1.1; }
 .tomorrow { font-size: 1.05rem; color: var(--muted); }
 .tomorrow b { color: var(--ink); }
-#btn-calendar { width: 100%; font-size: 1.35rem; min-height: 4rem; }
+.home-nav { display: flex; gap: 0.6rem; }
+#btn-calendar { flex: 1; min-width: 0; font-size: 1.35rem; min-height: 4rem; padding-left: 0.8rem; padding-right: 0.8rem; }
+.nav-day { flex: 0 0 6.6rem; flex-direction: column; gap: 0.1rem; padding: 0.3rem 0.4rem; min-height: 4rem; }
+.nav-day .nav-arrow { font-size: 1.4rem; line-height: 1; }
+.nav-day .nav-label { font-size: 0.95rem; }
 
 /* ---------- entries list (home + day view) ---------- */
 .entries {

@@ -20,15 +20,23 @@
       <p class="fulldate" id="fulldate"></p>
       <p class="clock" id="clock"></p>
       <p class="daypart"><span id="daypart-icon" class="daypart-icon"></span><span id="daypart-text"></span></p>
-      <p class="message hidden" id="message"></p>
+      <div class="messages" id="messages"></div>
     </div>
     <div class="home-right">
       <h2 class="panel-title">Today's plan</h2>
       <ul class="entries" id="today-list"></ul>
       <p class="tomorrow" id="tomorrow"></p>
-      <button class="big-btn primary" id="btn-calendar" type="button">
-        <span class="btn-icon">📅</span> <span id="btn-calendar-label">See the next 4 weeks</span>
-      </button>
+      <nav class="home-nav">
+        <button class="big-btn nav-day" id="btn-yesterday" type="button">
+          <span class="nav-arrow">◀</span><span class="nav-label">Yesterday</span>
+        </button>
+        <button class="big-btn primary" id="btn-calendar" type="button">
+          <span class="btn-icon">📅</span> <span id="btn-calendar-label">See the next 4 weeks</span>
+        </button>
+        <button class="big-btn nav-day" id="btn-tomorrow" type="button">
+          <span class="nav-arrow">▶</span><span class="nav-label">Tomorrow</span>
+        </button>
+      </nav>
     </div>
   </section>
 

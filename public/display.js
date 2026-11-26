@@ -5,6 +5,8 @@
   var KEY_STORE = 'diary.displayKey';
   var CACHE_STORE = 'diary.cache';
   var POLL_MS = 60 * 1000;
+  var DAYS_BACK = 7;     // how far back "Yesterday" / "Day before" can go
+  var MAX_MESSAGES = 3;  // home-screen messages shown at once
 
   var state = {
     key: null,
@@ -31,7 +33,7 @@
   if (cached) { try { state.data = JSON.parse(cached); } catch (e) { /* ignore */ } }
 
   function settings() {
-    return (state.data && state.data.settings) || { clock24: false, idleMinutes: 5, calendarWeeks: 4, personName: '', homeMessage: '' };
+    return (state.data && state.data.settings) || { clock24: false, idleMinutes: 5, calendarWeeks: 4, personName: '' };
   }
   function events() { return (state.data && state.data.events) || []; }
 
@@ -190,12 +192,23 @@
     $('daypart-text').textContent = dp.text;
   }
 
+  /* Messages due right now (by day of week and time). Timed ones first, then all-day ones. */
+  function renderMessages() {
+    var now = new Date();
+    var due = ((state.data && state.data.messages) || []).filter(function (m) { return S.messageActive(m, now); });
+    due.sort(function (a, b) { return (a.start ? 0 : 1) - (b.start ? 0 : 1); });
+    var box = $('messages');
+    var key = due.map(function (m) { return m.id + m.text; }).join('|');
+    if (box.getAttribute('data-key') === key) return;
+    box.setAttribute('data-key', key);
+    box.textContent = '';
+    due.slice(0, MAX_MESSAGES).forEach(function (m) { box.appendChild(el('p', 'message', m.text)); });
+  }
+
   function renderHome() {
     renderClock();
     var s = settings();
-    var msg = $('message');
-    msg.textContent = s.homeMessage || '';
-    msg.classList.toggle('hidden', !s.homeMessage);
+    renderMessages();
 
     var t = today();
     renderEntries($('today-list'), S.toDateStr(t), true, 'Nothing planned today. A quiet day.');
@@ -270,6 +283,7 @@
   }
 
   function openDay(d) {
+    if (S.daysBetween(today(), d) === 0) { show('home'); return; } // today lives on the home screen
     state.dayDate = d;
     show('day');
   }
@@ -281,8 +295,10 @@
     $('day-rel').textContent = relativeDay(d);
     renderEntries($('day-list'), S.toDateStr(d), isToday, 'Nothing planned for this day.');
     var diff = S.daysBetween(today(), d);
-    $('btn-prev-day').disabled = diff <= 0;
+    $('btn-prev-day').disabled = diff <= -DAYS_BACK;
     $('btn-next-day').disabled = diff >= (settings().calendarWeeks || 4) * 7 + 6;
+    $('btn-prev-day').textContent = diff === 1 ? '◀ Back to today' : '◀ Day before';
+    $('btn-next-day').textContent = diff === -1 ? 'Back to today ▶' : 'Next day ▶';
   }
 
   function render() {
@@ -294,6 +310,8 @@
   /* ---------- buttons ---------- */
   $('btn-calendar').addEventListener('click', function () { show('calendar'); });
   $('btn-back').addEventListener('click', function () { show('calendar'); });
+  $('btn-yesterday').addEventListener('click', function () { openDay(S.addDays(today(), -1)); });
+  $('btn-tomorrow').addEventListener('click', function () { openDay(S.addDays(today(), 1)); });
   $('btn-prev-day').addEventListener('click', function () { openDay(S.addDays(state.dayDate, -1)); });
   $('btn-next-day').addEventListener('click', function () { openDay(S.addDays(state.dayDate, 1)); });
   Array.prototype.forEach.call(document.querySelectorAll('[data-go-home]'), function (b) {
@@ -335,7 +353,7 @@
       // and so the day rolls over at midnight.
       var now = new Date();
       if (now.getSeconds() < 5 || state.lastRenderedDay !== S.toDateStr(today())) renderHome();
-      else renderClock();
+      else { renderClock(); renderMessages(); }
     } else if (state.view === 'calendar' && state.lastRenderedDay !== S.toDateStr(today())) {
       show('home');
     }

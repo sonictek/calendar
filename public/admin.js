@@ -8,7 +8,7 @@
     '🐶', '☕', '🍽️', '🥪', '🍰', '🛒', '🚗', '🚕', '🚌', '💇', '🛁', '🧺', '📞', '💻', '⛪', '🎂', '🎉',
     '🎵', '📺', '🌳', '🚶', '🧶', '🎨', '🃏', '🏠', '🛏️', '✉️', '🗑️', '⭐'];
 
-  var state = { me: null, events: [], settings: null, editing: null };
+  var state = { me: null, events: [], messages: [], settings: null, editing: null, editingMsg: null };
 
   /* ---------- API ---------- */
   function api(method, url, body) {
@@ -76,13 +76,14 @@
     var tab = e.target.getAttribute('data-tab');
     if (!tab) return;
     Array.prototype.forEach.call($('tabs').children, function (b) { b.classList.toggle('active', b === e.target); });
-    ['entries', 'settings', 'people'].forEach(function (t) { $('tab-' + t).classList.toggle('hidden', t !== tab); });
+    ['entries', 'messages', 'settings', 'people'].forEach(function (t) { $('tab-' + t).classList.toggle('hidden', t !== tab); });
     if (tab === 'people') loadUsers();
   });
 
   function loadAll() {
     api('GET', '/api/events').then(function (d) { state.events = d.events; renderAgenda(); }).catch(function (e) { toast(e.message); });
     api('GET', '/api/settings').then(function (d) { state.settings = d.settings; renderSettings(); }).catch(function () {});
+    api('GET', '/api/messages').then(function (d) { state.messages = d.messages; renderMessages(); }).catch(function () {});
   }
 
   /* ---------- entry form ---------- */
@@ -301,18 +302,18 @@
   function renderSettings() {
     var s = state.settings;
     sform.personName.value = s.personName || '';
-    sform.homeMessage.value = s.homeMessage || '';
     sform.idleMinutes.value = s.idleMinutes;
     sform.calendarWeeks.value = s.calendarWeeks;
     sform.clock24.checked = !!s.clock24;
     $('display-link').textContent = displayLink();
     $('open-display').href = displayLink();
     renderAgenda();
+    renderMessages();
   }
   sform.addEventListener('submit', function (e) {
     e.preventDefault();
     api('PUT', '/api/settings', {
-      personName: sform.personName.value, homeMessage: sform.homeMessage.value,
+      personName: sform.personName.value,
       idleMinutes: sform.idleMinutes.value, calendarWeeks: sform.calendarWeeks.value, clock24: sform.clock24.checked
     }).then(function (d) {
       state.settings = d.settings; renderSettings();
@@ -329,6 +330,127 @@
     if (!confirm('Make a new display key? The tablet will stop updating until you open the new link on it.')) return;
     api('PUT', '/api/settings', { regenerateKey: true }).then(function (d) { state.settings = d.settings; renderSettings(); toast('New key made'); });
   });
+
+  /* ---------- home messages ---------- */
+  var mform = $('msg-form');
+  var DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Monday first
+
+  function buildDayChecks() {
+    var box = $('day-checks');
+    DAY_ORDER.forEach(function (d) {
+      var lab = el('label');
+      var cb = el('input');
+      cb.type = 'checkbox'; cb.name = 'day'; cb.value = String(d);
+      cb.addEventListener('change', function () { lab.classList.toggle('on', cb.checked); });
+      lab.appendChild(cb);
+      lab.appendChild(document.createTextNode(S.WEEKDAYS[d].slice(0, 3)));
+      box.appendChild(lab);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-days]'), function (b) {
+      b.addEventListener('click', function () { setDays(b.getAttribute('data-days').split(',').map(Number)); });
+    });
+  }
+  function dayBoxes() { return Array.prototype.slice.call(mform.querySelectorAll('input[name=day]')); }
+  function setDays(days) {
+    dayBoxes().forEach(function (cb) {
+      cb.checked = days.indexOf(Number(cb.value)) !== -1;
+      cb.parentNode.classList.toggle('on', cb.checked);
+    });
+  }
+  function updateTimesUI() {
+    var allDay = mform.allDay.checked;
+    $('msg-times').classList.toggle('hidden', allDay);
+    $('msg-times-help').classList.toggle('hidden', allDay);
+  }
+  mform.allDay.addEventListener('change', updateTimesUI);
+
+  function resetMsgForm() {
+    mform.reset();
+    state.editingMsg = null;
+    setDays([0, 1, 2, 3, 4, 5, 6]);
+    updateTimesUI();
+    $('msg-form-title').textContent = 'Add a home-screen message';
+    $('msg-save').textContent = 'Add message';
+    $('msg-cancel').textContent = 'Clear';
+    $('msg-delete').classList.add('hidden');
+    $('msg-error').textContent = '';
+    $('msg-meta').textContent = '';
+    mform.classList.remove('editing');
+  }
+
+  function editMsg(m) {
+    state.editingMsg = m;
+    mform.text.value = m.text;
+    setDays(m.days || []);
+    mform.allDay.checked = !(m.start && m.end);
+    mform.start.value = m.start || '';
+    mform.end.value = m.end || '';
+    mform.enabled.checked = m.enabled !== false;
+    updateTimesUI();
+    $('msg-form-title').textContent = 'Edit message';
+    $('msg-save').textContent = 'Save changes';
+    $('msg-cancel').textContent = 'Cancel';
+    $('msg-delete').classList.remove('hidden');
+    $('msg-error').textContent = '';
+    $('msg-meta').textContent = m.createdBy ? 'Added by ' + m.createdBy + (m.updatedBy && m.updatedAt !== m.createdAt ? ' · last changed by ' + m.updatedBy : '') : '';
+    mform.classList.add('editing');
+    mform.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  mform.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var allDay = mform.allDay.checked;
+    var body = {
+      text: mform.text.value,
+      days: dayBoxes().filter(function (cb) { return cb.checked; }).map(function (cb) { return Number(cb.value); }),
+      start: allDay ? '' : mform.start.value,
+      end: allDay ? '' : mform.end.value,
+      enabled: mform.enabled.checked
+    };
+    var editing = state.editingMsg;
+    (editing ? api('PUT', '/api/messages/' + editing.id, body) : api('POST', '/api/messages', body))
+      .then(function (d) {
+        var i = state.messages.findIndex(function (x) { return x.id === d.message.id; });
+        if (i >= 0) state.messages[i] = d.message; else state.messages.push(d.message);
+        toast(editing ? 'Saved' : 'Message added');
+        resetMsgForm();
+        renderMessages();
+      }).catch(function (err) { $('msg-error').textContent = err.message; });
+  });
+  $('msg-cancel').addEventListener('click', resetMsgForm);
+  $('msg-delete').addEventListener('click', function () {
+    var m = state.editingMsg;
+    if (!m || !confirm('Delete this message?')) return;
+    api('DELETE', '/api/messages/' + m.id).then(function () {
+      state.messages = state.messages.filter(function (x) { return x.id !== m.id; });
+      resetMsgForm(); renderMessages(); toast('Deleted');
+    }).catch(function (err) { toast(err.message); });
+  });
+
+  function renderMessages() {
+    var ul = $('msg-list');
+    if (!ul) return;
+    var use24 = state.settings ? state.settings.clock24 : false;
+    var now = new Date();
+    ul.textContent = '';
+    if (!state.messages.length) {
+      ul.appendChild(el('li', 'empty', 'No messages yet. Add one with the form.'));
+      return;
+    }
+    state.messages.forEach(function (m) {
+      var li = el('li');
+      var span = el('span');
+      span.appendChild(el('div', 'msg-text', m.text));
+      var sub = el('small', null, S.describeMessageSchedule(m, use24));
+      if (m.enabled === false) sub.appendChild(el('span', 'badge off', 'Switched off'));
+      else if (S.messageActive(m, now)) sub.appendChild(el('span', 'badge now', 'Showing now'));
+      span.appendChild(sub);
+      li.appendChild(span);
+      li.appendChild(button('Edit', '', function () { editMsg(m); }));
+      ul.appendChild(li);
+    });
+  }
+  setInterval(renderMessages, 60000);
 
   /* ---------- people ---------- */
   function loadUsers() {
@@ -371,6 +493,8 @@
   /* ---------- start ---------- */
   buildIconPicker();
   resetForm();
+  buildDayChecks();
+  resetMsgForm();
   fetch('/api/me', { credentials: 'same-origin' }).then(function (r) {
     if (!r.ok) throw new Error();
     return r.json();

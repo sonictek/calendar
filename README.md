@@ -9,11 +9,12 @@ Two parts:
 
 ## What the display does
 
-- **Home screen:** "Good afternoon, Margaret – Today is **Thursday**, 26th November 2026", a big clock, "It is afternoon", an optional note (e.g. "You live at 12 Rose Lane") and **today's plan**:
+- **Home screen:** "Good afternoon, Margaret – Today is **Thursday**, 26th November 2026", a big clock, "It is afternoon", any **home messages** that are due right now (see below) and **today's plan**:
   - things already finished are greyed out and marked **Earlier**
   - the thing happening now is yellow and marked **Now**
   - the next thing is outlined and marked **Next**
   - a short line about **tomorrow**
+- **◀ Yesterday** and **Tomorrow ▶** buttons step through the days one at a time (up to 7 days back). Stepping back to today returns to the home screen.
 - **"See the next 4 weeks"** opens a calendar grid. Today is yellow. Days with something special on are blue, with a picture and the first item's name. Routines that happen every day or every weekday (carer visits, tablets) don't turn days blue, otherwise every day would look the same. They still appear on the day screens.
 - **Touching a day** shows that day's full list ("Wednesday 2nd December – In 6 days"), with Day before / Next day buttons.
 - **After 5 minutes without a touch** it goes back to the home screen showing today (the time can be changed in Settings).
@@ -27,7 +28,8 @@ Two parts:
   - **Skip this day:** remove one date of a repeating entry (e.g. no carer visit on Christmas Day) without changing the others. Skipped dates can be put back.
   - "Coming up" lists the next 2 weeks to 3 months as the tablet will show them, with an option to hide everyday routines.
   - Each entry records who added it and who last changed it.
-- **Settings:** name to greet, home-screen message, inactivity timeout, number of weeks shown, 12- or 24-hour clock, and the tablet's display link.
+- **Home messages:** notes shown on the left of the home screen. Each one is shown on the chosen days of the week, either all day (permanent) or between set times, e.g. "Julie the carer comes at 9" on weekdays 7–9:30 am. A time range that crosses midnight (9 pm until 7 am) runs overnight into the next morning. Messages can be switched off without deleting them. Up to 3 show at once, timed ones first.
+- **Settings:** name to greet, inactivity timeout, number of weeks shown, 12- or 24-hour clock, and the tablet's display link.
 - **People:** add or remove the people who can log in, and change your own password.
 
 ## Running it

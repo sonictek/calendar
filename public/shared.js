@@ -102,7 +102,45 @@
     return text;
   }
 
+  /* Is a home-screen message due right now? days: 0 = Sunday … 6 = Saturday.
+     No times = all day. If "end" is earlier than "start" (e.g. 21:00 → 07:00)
+     it runs overnight, into the morning after each chosen day. */
+  function messageActive(msg, now) {
+    if (msg.enabled === false || !msg.days) return false;
+    var today = now.getDay();
+    if (!msg.start || !msg.end) return msg.days.indexOf(today) !== -1;
+    var m = now.getHours() * 60 + now.getMinutes();
+    var s = timeToMinutes(msg.start), e = timeToMinutes(msg.end);
+    if (s < e) return msg.days.indexOf(today) !== -1 && m >= s && m < e;
+    var yesterday = (today + 6) % 7;
+    return (msg.days.indexOf(today) !== -1 && m >= s) || (msg.days.indexOf(yesterday) !== -1 && m < e);
+  }
+
+  function describeDays(days) {
+    var d = (days || []).slice().sort();
+    var key = d.join(',');
+    if (key === '0,1,2,3,4,5,6') return 'Every day';
+    if (key === '1,2,3,4,5') return 'Weekdays';
+    if (key === '0,6') return 'Weekends';
+    if (!d.length) return 'No days';
+    // list Monday first
+    return d.slice().sort(function (a, b) { return ((a + 6) % 7) - ((b + 6) % 7); })
+      .map(function (x) { return WEEKDAYS[x].slice(0, 3); }).join(', ');
+  }
+
+  function describeMessageSchedule(msg, use24) {
+    var text = describeDays(msg.days);
+    if (msg.start && msg.end) {
+      text += ', ' + formatTime(msg.start, use24) + ' – ' + formatTime(msg.end, use24);
+      if (msg.end < msg.start) text += ' (overnight)';
+    } else {
+      text += ', all day';
+    }
+    return text;
+  }
+
   return {
+    messageActive: messageActive, describeDays: describeDays, describeMessageSchedule: describeMessageSchedule,
     pad: pad, toDateStr: toDateStr, parseDate: parseDate, addDays: addDays,
     daysBetween: daysBetween, occursOn: occursOn, entriesForDate: entriesForDate,
     timeToMinutes: timeToMinutes, formatTime: formatTime, ordinal: ordinal,
