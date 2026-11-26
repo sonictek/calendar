@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Diary Admin</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- Login -->
+<section id="login" class="login hidden">
+  <form id="login-form" class="card">
+    <h1>📔 Diary admin</h1>
+    <label>Username <input name="username" autocomplete="username" required></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <p class="error" id="login-error"></p>
+    <button class="btn primary" type="submit">Log in</button>
+  </form>
+</section>
+
+<!-- App -->
+<div id="main" class="hidden">
+  <header class="top">
+    <h1>📔 Diary admin</h1>
+    <nav class="tabs" id="tabs">
+      <button data-tab="entries" class="active" type="button">Diary</button>
+      <button data-tab="settings" type="button">Settings</button>
+      <button data-tab="people" type="button">People</button>
+    </nav>
+    <div class="who"><span id="me"></span> <button class="btn small" id="logout" type="button">Log out</button></div>
+  </header>
+
+  <!-- Diary entries -->
+  <section id="tab-entries" class="tab">
+    <div class="layout">
+      <form id="entry-form" class="card entry-form">
+        <h2 id="form-title">Add an entry</h2>
+        <label>What is happening? <span class="req">*</span>
+          <input name="title" maxlength="120" required placeholder="e.g. Sarah is visiting">
+        </label>
+        <label>Picture
+          <div class="icon-picker" id="icon-picker"></div>
+          <input type="hidden" name="icon">
+        </label>
+        <div class="row">
+          <label>Date <span class="req">*</span><input type="date" name="date" required></label>
+          <label>Start time <input type="time" name="time"></label>
+          <label>End time <input type="time" name="endTime"></label>
+        </div>
+        <p class="help">Leave the start time empty for an “All day” entry.</p>
+        <label>Extra details (optional)
+          <textarea name="notes" maxlength="600" rows="2" placeholder="e.g. She is bringing the grandchildren"></textarea>
+        </label>
+        <div class="row">
+          <label>Repeats
+            <select name="repeat">
+              <option value="none">Does not repeat</option>
+              <option value="daily">Every day</option>
+              <option value="weekdays">Every weekday (Mon–Fri)</option>
+              <option value="weekly">Every week</option>
+              <option value="fortnightly">Every 2 weeks</option>
+              <option value="monthly">Every month (same date)</option>
+              <option value="yearly">Every year</option>
+            </select>
+          </label>
+          <label id="until-label" class="hidden">Until (optional) <input type="date" name="repeatUntil"></label>
+        </div>
+        <label class="check"><input type="checkbox" name="important"> Mark as important (shown with a red border)</label>
+        <p class="error" id="form-error"></p>
+        <div class="actions">
+          <button class="btn primary" type="submit" id="save-btn">Add to diary</button>
+          <button class="btn" type="button" id="cancel-edit">Clear</button>
+          <button class="btn danger hidden" type="button" id="delete-btn">Delete</button>
+        </div>
+        <p class="meta" id="form-meta"></p>
+      </form>
+
+      <div class="card agenda-card">
+        <div class="agenda-head">
+          <h2>Coming up</h2>
+          <label class="inline check-inline"><input type="checkbox" id="hide-routine"> Hide everyday routines</label>
+          <label class="inline">Show
+            <select id="agenda-range">
+              <option value="14">2 weeks</option>
+              <option value="28" selected>4 weeks</option>
+              <option value="56">8 weeks</option>
+              <option value="91">3 months</option>
+            </select>
+          </label>
+        </div>
+        <div id="agenda"></div>
+        <details class="repeating">
+          <summary>All repeating entries (<span id="rep-count">0</span>)</summary>
+          <ul id="repeating-list" class="simple-list"></ul>
+        </details>
+        <details class="repeating">
+          <summary>Past one-off entries (<span id="past-count">0</span>)</summary>
+          <ul id="past-list" class="simple-list"></ul>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings -->
+  <section id="tab-settings" class="tab hidden">
+    <form id="settings-form" class="card narrow">
+      <h2>Display settings</h2>
+      <label>Name to greet (e.g. “Margaret” → “Good morning, Margaret”)
+        <input name="personName" maxlength="60">
+      </label>
+      <label>Message on the home screen (optional)
+        <textarea name="homeMessage" maxlength="300" rows="3" placeholder="e.g. You live at 12 Rose Lane. Sarah phones every evening."></textarea>
+      </label>
+      <div class="row">
+        <label>Go back to today after (minutes of no touching)
+          <input name="idleMinutes" type="number" min="1" max="60">
+        </label>
+        <label>Weeks shown in calendar
+          <input name="calendarWeeks" type="number" min="2" max="8">
+        </label>
+      </div>
+      <label class="check"><input type="checkbox" name="clock24"> Use 24-hour clock (14:30 instead of 2:30 pm)</label>
+      <p class="ok" id="settings-ok"></p>
+      <button class="btn primary" type="submit">Save settings</button>
+    </form>
+
+    <div class="card narrow">
+      <h2>Tablet display link</h2>
+      <p>Open this link <b>once</b> in Firefox on the tablet. It remembers the key, so afterwards the plain address works.</p>
+      <div class="linkbox"><code id="display-link"></code></div>
+      <div class="actions">
+        <button class="btn" type="button" id="copy-link">Copy link</button>
+        <a class="btn" id="open-display" target="_blank" rel="noopener">Preview display</a>
+        <button class="btn danger" type="button" id="regen-key">Make a new key</button>
+      </div>
+      <p class="help">Making a new key stops the old link working – the tablet will need the new link.</p>
+    </div>
+  </section>
+
+  <!-- People -->
+  <section id="tab-people" class="tab hidden">
+    <div class="card narrow">
+      <h2>People who can update the diary</h2>
+      <ul id="user-list" class="simple-list"></ul>
+      <form id="user-form" class="row">
+        <label>Username <input name="username" required maxlength="40"></label>
+        <label>Password (8+ characters) <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+        <button class="btn primary" type="submit">Add person</button>
+      </form>
+      <p class="error" id="user-error"></p>
+      <p class="ok" id="user-ok"></p>
+    </div>
+    <form id="pw-form" class="card narrow">
+      <h2>Change my password</h2>
+      <div class="row">
+        <label>Current password <input name="current" type="password" required autocomplete="current-password"></label>
+        <label>New password <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+      </div>
+      <p class="error" id="pw-error"></p>
+      <p class="ok" id="pw-ok"></p>
+      <button class="btn primary" type="submit">Change password</button>
+    </form>
+  </section>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<script src="shared.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

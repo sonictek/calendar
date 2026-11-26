@@ -1,0 +1,9 @@
+{
+  "name": "My Diary",
+  "short_name": "Diary",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#fbf7ef",
+  "theme_color": "#fbf7ef"
+}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#fbf7ef">
+<title>My Diary</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="display.css">
+</head>
+<body>
+<main id="app">
+
+  <!-- HOME: today -->
+  <section id="view-home" class="view">
+    <div class="home-left">
+      <p class="greeting" id="greeting"></p>
+      <p class="today-is">Today is</p>
+      <p class="weekday" id="weekday"></p>
+      <p class="fulldate" id="fulldate"></p>
+      <p class="clock" id="clock"></p>
+      <p class="daypart"><span id="daypart-icon" class="daypart-icon"></span><span id="daypart-text"></span></p>
+      <p class="message hidden" id="message"></p>
+    </div>
+    <div class="home-right">
+      <h2 class="panel-title">Today's plan</h2>
+      <ul class="entries" id="today-list"></ul>
+      <p class="tomorrow" id="tomorrow"></p>
+      <button class="big-btn primary" id="btn-calendar" type="button">
+        <span class="btn-icon">📅</span> <span id="btn-calendar-label">See the next 4 weeks</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- CALENDAR: next N weeks -->
+  <section id="view-calendar" class="view hidden">
+    <header class="bar">
+      <button class="big-btn" data-go-home type="button"><span class="btn-icon">🏠</span> Back to today</button>
+      <h1 id="cal-title">The next 4 weeks</h1>
+    </header>
+    <div class="cal-head" id="cal-head"></div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <p class="hint">Touch any day to see what is happening. Blue days have something special on.</p>
+  </section>
+
+  <!-- DAY: one chosen day -->
+  <section id="view-day" class="view hidden">
+    <header class="bar">
+      <button class="big-btn" id="btn-back" type="button"><span class="btn-icon">◀</span> Calendar</button>
+      <div class="day-heading">
+        <h1 id="day-title"></h1>
+        <p id="day-rel"></p>
+      </div>
+      <button class="big-btn" data-go-home type="button"><span class="btn-icon">🏠</span> Today</button>
+    </header>
+    <ul class="entries day-entries" id="day-list"></ul>
+    <nav class="day-nav">
+      <button class="big-btn" id="btn-prev-day" type="button">◀ Day before</button>
+      <button class="big-btn" id="btn-next-day" type="button">Next day ▶</button>
+    </nav>
+  </section>
+
+  <section id="view-setup" class="view setup hidden">
+    <div>
+      <h1>This screen needs setting up</h1>
+      <p>Open the admin panel, go to <b>Settings</b>, and open the <b>display link</b> on this tablet.</p>
+    </div>
+  </section>
+
+  <p class="status" id="status"></p>
+</main>
+<script src="shared.js"></script>
+<script src="display.js"></script>
+</body>
+</html>
