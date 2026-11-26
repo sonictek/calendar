@@ -32,7 +32,7 @@ Two parts:
 
 ## Running it
 
-You need Node.js 18 or newer. There are no other dependencies.
+You need Node.js 10.12 or newer (16 or newer recommended). There are no other dependencies.
 
 ```bash
 cd dementia-diary

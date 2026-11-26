@@ -23,6 +23,15 @@ const SECURE_COOKIE = process.env.SECURE_COOKIE === '1';
 const SESSION_DAYS = 30;
 const APP_VERSION = String(Date.now());
 
+// Helpers that avoid newer Node APIs, so the app runs on Node 10.12 and later.
+function randomToken(bytes) {
+  return crypto.randomBytes(bytes).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function randomId() {
+  const h = crypto.randomBytes(16).toString('hex');
+  return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+}
+
 /* ---------- storage ---------- */
 
 function defaultSettings() {
@@ -32,7 +41,7 @@ function defaultSettings() {
     clock24: false,
     idleMinutes: 5,
     calendarWeeks: 4,
-    displayKey: crypto.randomBytes(18).toString('base64url')
+    displayKey: randomToken(18)
   };
 }
 
@@ -120,7 +129,7 @@ if (cmd === 'show-display-link') {
 }
 
 if (db.users.length === 0) {
-  const pw = process.env.ADMIN_PASSWORD || crypto.randomBytes(9).toString('base64url');
+  const pw = process.env.ADMIN_PASSWORD || randomToken(9);
   db.users.push({ username: 'admin', password: hashPassword(pw), created: new Date().toISOString() });
   saveDb();
   console.log('\n=====================================================');
@@ -146,7 +155,7 @@ function validDate(v) {
 
 function cleanEvent(input, existing) {
   const ev = {
-    id: existing ? existing.id : crypto.randomUUID(),
+    id: existing ? existing.id : randomId(),
     title: str(input.title, 120),
     date: str(input.date, 10),
     time: str(input.time, 5),
@@ -185,7 +194,7 @@ function cleanSettings(input) {
     const n = Math.round(Number(input.calendarWeeks));
     s.calendarWeeks = Math.min(8, Math.max(2, n || 4));
   }
-  if (input.regenerateKey) s.displayKey = crypto.randomBytes(18).toString('base64url');
+  if (input.regenerateKey) s.displayKey = randomToken(18);
 }
 
 /* ---------- HTTP helpers ---------- */
@@ -222,7 +231,7 @@ function readBody(req) {
     req.on('end', () => {
       if (!chunks.length) return resolve({});
       try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); }
-      catch { reject(userError('Invalid JSON')); }
+      catch (e) { reject(userError('Invalid JSON')); }
     });
     req.on('error', reject);
   });
@@ -311,7 +320,7 @@ async function handleApi(req, res, url) {
     }
     loginFailures.delete(ip);
     pruneSessions();
-    const token = crypto.randomBytes(32).toString('base64url');
+    const token = randomToken(32);
     db.sessions[token] = { username: u.username, expires: Date.now() + SESSION_DAYS * 86400000 };
     saveDb();
     const cookie = `diary_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_DAYS * 86400}` + (SECURE_COOKIE ? '; Secure' : '');
@@ -417,7 +426,7 @@ async function handleApi(req, res, url) {
 
 const server = http.createServer(async (req, res) => {
   let url;
-  try { url = new URL(req.url, 'http://localhost'); } catch { return send(res, 400, 'Bad request'); }
+  try { url = new URL(req.url, 'http://localhost'); } catch (e) { return send(res, 400, 'Bad request'); }
   try {
     if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed');
