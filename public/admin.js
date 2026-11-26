@@ -418,14 +418,24 @@
       }).catch(function (err) { $('msg-error').textContent = err.message; });
   });
   $('msg-cancel').addEventListener('click', resetMsgForm);
-  $('msg-delete').addEventListener('click', function () {
-    var m = state.editingMsg;
-    if (!m || !confirm('Delete this message?')) return;
+  function deleteMsg(m) {
+    if (!m || !confirm('Delete this message?\n\n"' + m.text + '"')) return;
     api('DELETE', '/api/messages/' + m.id).then(function () {
       state.messages = state.messages.filter(function (x) { return x.id !== m.id; });
-      resetMsgForm(); renderMessages(); toast('Deleted');
+      if (state.editingMsg && state.editingMsg.id === m.id) resetMsgForm();
+      renderMessages(); toast('Deleted');
     }).catch(function (err) { toast(err.message); });
-  });
+  }
+  function toggleMsg(m) {
+    var body = { text: m.text, days: m.days, start: m.start, end: m.end, enabled: m.enabled === false };
+    api('PUT', '/api/messages/' + m.id, body).then(function (d) {
+      var i = state.messages.findIndex(function (x) { return x.id === d.message.id; });
+      state.messages[i] = d.message;
+      if (state.editingMsg && state.editingMsg.id === m.id) editMsg(d.message);
+      renderMessages(); toast(d.message.enabled ? 'Switched on' : 'Switched off');
+    }).catch(function (err) { toast(err.message); });
+  }
+  $('msg-delete').addEventListener('click', function () { deleteMsg(state.editingMsg); });
 
   function renderMessages() {
     var ul = $('msg-list');
@@ -446,7 +456,11 @@
       else if (S.messageActive(m, now)) sub.appendChild(el('span', 'badge now', 'Showing now'));
       span.appendChild(sub);
       li.appendChild(span);
-      li.appendChild(button('Edit', '', function () { editMsg(m); }));
+      var actions = el('div', 'row-actions');
+      actions.appendChild(button('Edit', '', function () { editMsg(m); }));
+      actions.appendChild(button(m.enabled === false ? 'Switch on' : 'Switch off', '', function () { toggleMsg(m); }));
+      actions.appendChild(button('Delete', 'danger', function () { deleteMsg(m); }));
+      li.appendChild(actions);
       ul.appendChild(li);
     });
   }
