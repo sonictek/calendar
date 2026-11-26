@@ -97,7 +97,7 @@
     ICONS.forEach(function (ic) {
       var b = el('button', null, ic);
       b.type = 'button';
-      b.title = ic;
+      b.title = ic === '⭐' ? 'Routine – not counted in the 4-week calendar' : ic;
       b.addEventListener('click', function () { selectIcon(ic); });
       box.appendChild(b);
     });

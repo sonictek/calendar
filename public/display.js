@@ -235,6 +235,9 @@
     state.lastRenderedDay = S.toDateStr(t);
   }
 
+  var ROUTINE_ICON = '⭐';
+  function isRoutine(e) { return (e.icon || '').replace(/\uFE0F/g, '') === ROUTINE_ICON; }
+
   function renderCalendar() {
     var s = settings();
     var t = today();
@@ -260,9 +263,12 @@
       var ds = S.toDateStr(d);
       var diff = S.daysBetween(t, d);
       var items = S.entriesForDate(events(), ds);
-      // Everyday routines (daily / weekday repeats) don't light up the calendar,
-      // otherwise every day would look the same. They still show on the day screen.
-      var special = items.filter(function (e) { return e.repeat !== 'daily' && e.repeat !== 'weekdays'; });
+      // Routine entries don't count or light up the calendar, otherwise every day
+      // would look the same. They still show on the home and day screens.
+      //  - entries with the ⭐ picture are routine (e.g. carer visits)
+      //  - everyday repeats (daily / weekdays) don't turn the day blue
+      var counted = items.filter(function (e) { return !isRoutine(e); });
+      var special = counted.filter(function (e) { return e.repeat !== 'daily' && e.repeat !== 'weekdays'; });
       var cell = el('button', 'cell');
       cell.type = 'button';
       if (d.getDay() === 0 || d.getDay() === 6) cell.classList.add('weekend');
@@ -284,9 +290,9 @@
           cell.classList.add('has');
           cell.appendChild(el('div', 'c-first', special[0].title + (special.length > 1 ? ' (+' + (special.length - 1) + ' more)' : '')));
         }
-        // How many diary entries that day (everything, routines included).
-        if (items.length) cell.appendChild(el('span', 'c-count', String(items.length)));
-        cell.setAttribute('aria-label', S.WEEKDAYS[d.getDay()] + ' ' + longDate(d) + ', ' + items.length + ' things');
+        // How many diary entries that day, not counting ⭐ routine ones.
+        if (counted.length) cell.appendChild(el('span', 'c-count', String(counted.length)));
+        cell.setAttribute('aria-label', S.WEEKDAYS[d.getDay()] + ' ' + longDate(d) + ', ' + counted.length + ' things');
         cell.addEventListener('click', openDay.bind(null, d));
       }
       grid.appendChild(cell);

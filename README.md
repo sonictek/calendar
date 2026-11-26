@@ -15,7 +15,7 @@ Two parts:
   - the next thing is outlined and marked **Next**
   - a short line about **tomorrow**
 - **◀ Yesterday** and **Tomorrow ▶** buttons step through the days one at a time (up to 7 days back). Stepping back to today returns to the home screen.
-- **"See the next 4 weeks"** opens a calendar grid. Today is yellow, and Saturdays and Sundays have a red box. Each day shows a number for how many diary entries it has. Days with something special on are blue, with a picture and the first item's name. Routines that happen every day or every weekday (carer visits, tablets) don't turn days blue, otherwise every day would look the same. They still appear on the day screens.
+- **"See the next 4 weeks"** opens a calendar grid. Today is yellow, and Saturdays and Sundays have a red box. Each day shows a number for how many diary entries it has. Entries with the ⭐ picture count as routine (e.g. carer visits): they aren't counted and don't turn a day blue, but still show on the home and day screens. Days with something special on are blue, with a picture and the first item's name. Routines that happen every day or every weekday (carer visits, tablets) don't turn days blue, otherwise every day would look the same. They still appear on the day screens.
 - **Touching a day** shows that day's full list ("Wednesday 2nd December – In 6 days"), with Day before / Next day buttons.
 - **After 5 minutes without a touch** it goes back to the home screen showing today (the time can be changed in Settings).
 - It checks for changes every minute, so updates from the admin panel show up within about a minute. If the internet drops, it keeps showing the last saved diary.
