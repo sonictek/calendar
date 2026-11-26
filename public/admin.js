@@ -78,6 +78,9 @@
     Array.prototype.forEach.call($('tabs').children, function (b) { b.classList.toggle('active', b === e.target); });
     ['entries', 'messages', 'settings', 'people'].forEach(function (t) { $('tab-' + t).classList.toggle('hidden', t !== tab); });
     if (tab === 'people') loadUsers();
+    // Always show the latest from the server (someone else may have changed it).
+    if (tab === 'messages') api('GET', '/api/messages').then(function (d) { state.messages = d.messages; renderMessages(); }).catch(function () {});
+    if (tab === 'entries') api('GET', '/api/events').then(function (d) { state.events = d.events; renderAgenda(); }).catch(function () {});
   });
 
   function loadAll() {
