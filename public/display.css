@@ -15,6 +15,8 @@
   --now: #fff1c2;
   --important: #b3261e;
   --past: #8a8378;
+  --rule: #e6dfd2;          /* lines on the diary page */
+  --margin: #e7a9a3;        /* soft red margin line, like a paper diary */
   font-size: min(1.95vw, 3.05vh);
 }
 @media (orientation: portrait) {
@@ -83,38 +85,47 @@ p, h1, h2, ul { margin: 0; padding: 0; }
 .nav-day .nav-arrow { font-size: 1.4rem; line-height: 1; }
 .nav-day .nav-label { font-size: 0.95rem; }
 
-/* ---------- entries list (home + day view) ---------- */
+/* ---------- entries list (home + day view): one ruled diary page ---------- */
 .entries {
   list-style: none; flex: 1; min-height: 0; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 0.6rem;
-  overscroll-behavior: contain; padding-right: 0.2rem;
+  display: flex; flex-direction: column;
+  overscroll-behavior: contain;
+  border: 2px solid var(--line); border-radius: 1rem;
+  padding: 0.2rem 0;
+  /* the red margin line runs the full height of the page, like a paper diary */
+  background: linear-gradient(var(--margin), var(--margin)) no-repeat calc(6.4rem - 2px) 0 / 2px 100%, var(--panel);
+  background-attachment: local;
 }
 .entry {
-  display: flex; align-items: center; gap: 0.7rem; flex-shrink: 0;
-  background: var(--panel); border: 2px solid var(--line); border-radius: 1rem;
-  padding: 0.55rem 0.8rem;
+  display: flex; align-items: center; gap: 0.8rem; flex-shrink: 0;
+  padding: 0.6rem 1rem 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
 }
-.entry .e-time { flex: 0 0 5.8rem; font-size: 1.15rem; font-weight: 700; text-align: right; line-height: 1.15; }
+.entry .e-time {
+  flex: 0 0 6.4rem; align-self: stretch;
+  display: flex; flex-direction: column; justify-content: center;
+  padding-right: 0.8rem; border-right: 2px solid var(--margin);
+  font-size: 1.15rem; font-weight: 700; text-align: right; line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
 .entry .e-time small { display: block; font-weight: 500; color: var(--muted); font-size: 0.85rem; }
-.entry .e-icon { font-size: 2rem; flex: 0 0 2.4rem; text-align: center; line-height: 1; }
+.entry .e-icon { font-size: 1.7rem; flex: 0 0 2rem; text-align: center; line-height: 1; }
 .entry .e-body { flex: 1; min-width: 0; }
 .entry .e-title { font-size: 1.3rem; font-weight: 700; overflow-wrap: anywhere; }
-.entry .e-notes { font-size: 1rem; color: var(--muted); margin-top: 0.15rem; white-space: pre-line; overflow-wrap: anywhere; }
+.entry .e-notes { font-size: 1rem; color: var(--muted); margin-top: 0.1rem; white-space: pre-line; overflow-wrap: anywhere; }
 .entry .e-tag {
-  flex: 0 0 auto; font-size: 0.9rem; font-weight: 800; padding: 0.25rem 0.7rem;
+  flex: 0 0 auto; font-size: 0.9rem; font-weight: 800; padding: 0.2rem 0.7rem;
   border-radius: 99px; background: var(--accent); color: #fff;
 }
-.entry.important { border-color: var(--important); border-width: 3px; }
+.entry.important .e-title { color: var(--important); }
 .entry.important .e-title::after { content: " ❗"; }
-.entry.is-now { background: var(--now); border-color: var(--today-line); border-width: 3px; }
+.entry.is-now { background: var(--now); }
 .entry.is-now .e-tag { background: var(--today-line); }
-.entry.is-next { border-color: var(--accent); border-width: 3px; }
-.entry.is-past { opacity: 0.55; background: transparent; padding-top: 0.3rem; padding-bottom: 0.3rem; }
+.entry.is-past { opacity: 0.5; padding-top: 0.35rem; padding-bottom: 0.35rem; }
 .entries .entry.is-past .e-notes, .entries .entry.is-past .e-time small { display: none; }
-.entry.is-past .e-tag { background: var(--past); }
+.entry.is-past .e-tag { background: none; color: var(--past); padding: 0; font-weight: 700; }
 .entries .empty {
-  font-size: 1.35rem; color: var(--muted); padding: 1.4rem 1rem; text-align: center;
-  border: 2px dashed var(--line); border-radius: 1rem;
+  font-size: 1.35rem; color: var(--muted); padding: 1.6rem 1rem; text-align: center;
 }
 
 .home-right .entry .e-notes {
